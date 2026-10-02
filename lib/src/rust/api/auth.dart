@@ -9,11 +9,11 @@ import 'package:flutter_rust_bridge/flutter_rust_bridge_for_generated.dart';
 
 // These functions are ignored because they are not marked as `pub`: `get_client_container`
 
-Future<String> loginUser({
+Future<String> login({
   required String homeserverUrl,
   required String username,
   required String password,
-}) => RustLib.instance.api.crateApiAuthLoginUser(
+}) => RustLib.instance.api.crateApiAuthLogin(
   homeserverUrl: homeserverUrl,
   username: username,
   password: password,
