@@ -10,7 +10,7 @@ fn get_client_container() -> &'static Mutex<Option<Client>> {
 }
 
 #[flutter_rust_bridge::frb]
-pub async fn login_user(
+pub async fn login(
     homeserver_url: String,
     username: String,
     password: String,
