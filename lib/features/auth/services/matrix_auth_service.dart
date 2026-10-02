@@ -34,7 +34,6 @@ class MatrixAuthService implements AuthService {
   }
 }
 
-// Provider configurado com as chamadas reais de HTTP/Matrix SDK
 final authServiceProvider = Provider<AuthService>((ref) {
   return MatrixAuthService(onLogin: login, onLogout: logout);
 });
