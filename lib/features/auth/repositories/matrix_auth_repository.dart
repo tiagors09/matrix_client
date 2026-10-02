@@ -16,16 +16,22 @@ class MatrixAuthRepository implements AuthRepository {
   MatrixAuthRepository(this._service);
 
   @override
-  Future<void> login(String hostname, String username, String password) async {
+  Future<String> login(
+    String hostname,
+    String username,
+    String password,
+  ) async {
     log('Iniciando login pelo serviço Matrix', name: runtimeType.toString());
 
     try {
-      final response = await _service.login(hostname, username, password);
-      final hasResponse = response != null && response.toString().isNotEmpty;
+      return await _service.login(hostname, username, password);
+    } on MatrixAuthException catch (error) {
       log(
-        'Login retornou resposta: $hasResponse',
+        'Login recusado pelo homeserver (status ${error.statusCode ?? 'desconhecido'})',
         name: runtimeType.toString(),
+        level: 900,
       );
+      rethrow;
     } catch (e, stackTrace) {
       log(
         'Erro ao realizar login',
