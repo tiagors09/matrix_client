@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:matrix_client/features/auth/exceptions/matrix_auth_exception.dart';
 import 'package:matrix_client/features/auth/services/auth_service.dart';
 import 'package:matrix_client/src/rust/api/auth.dart';
 
@@ -14,18 +15,22 @@ class MatrixAuthService implements AuthService {
   MatrixAuthService({required this.onLogin, required this.onLogout});
 
   @override
-  Future<dynamic> login(
+  Future<String> login(
     String hostname,
     String username,
     String password,
   ) async {
-    final response = await onLogin(
-      homeserverUrl: hostname,
-      username: username,
-      password: password,
-    );
-
-    return response;
+    try {
+      return await onLogin(
+        homeserverUrl: hostname,
+        username: username,
+        password: password,
+      );
+    } on MatrixAuthException {
+      rethrow;
+    } on Object catch (error) {
+      throw MatrixAuthException.from(error);
+    }
   }
 
   @override
