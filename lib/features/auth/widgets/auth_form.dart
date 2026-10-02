@@ -120,6 +120,12 @@ class _AuthFormState extends State<AuthForm> {
                         ],
                       ),
                     ),
+                    if (widget.errorMessage != null)
+                      Text(
+                        widget.errorMessage!,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(color: Colors.red),
+                      ),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
