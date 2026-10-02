@@ -3,7 +3,12 @@ import 'package:matrix_client/features/auth/services/auth_service.dart';
 import 'package:matrix_client/src/rust/api/auth.dart';
 
 class MatrixAuthService implements AuthService {
-  final Future<dynamic> Function(String, String, String) onLogin;
+  final Future<String> Function({
+    required String homeserverUrl,
+    required String username,
+    required String password,
+  })
+  onLogin;
   final Future<void> Function() onLogout;
 
   MatrixAuthService({required this.onLogin, required this.onLogout});
@@ -14,7 +19,13 @@ class MatrixAuthService implements AuthService {
     String username,
     String password,
   ) async {
-    return await onLogin(hostname, username, password);
+    final response = await onLogin(
+      homeserverUrl: hostname,
+      username: username,
+      password: password,
+    );
+
+    return response;
   }
 
   @override
@@ -25,12 +36,5 @@ class MatrixAuthService implements AuthService {
 
 // Provider configurado com as chamadas reais de HTTP/Matrix SDK
 final authServiceProvider = Provider<AuthService>((ref) {
-  return MatrixAuthService(
-    onLogin: (homeserverUrl, username, password) => login(
-      homeserverUrl: homeserverUrl,
-      username: username,
-      password: password,
-    ),
-    onLogout: logout,
-  );
+  return MatrixAuthService(onLogin: login, onLogout: logout);
 });
