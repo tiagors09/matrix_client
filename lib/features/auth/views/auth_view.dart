@@ -8,8 +8,13 @@ class AuthView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(authViewModelProvider);
+    ref.listen(authViewModelProvider, (previous, next) {
+      if (next.isAuthenticated && (previous?.isAuthenticated != true)) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+    });
 
+    final state = ref.watch(authViewModelProvider);
     final notifier = ref.read(authViewModelProvider.notifier);
 
     return Scaffold(
