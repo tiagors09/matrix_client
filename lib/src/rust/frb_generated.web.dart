@@ -7,6 +7,9 @@
 // ignore_for_file: argument_type_not_assignable
 
 import 'api/auth.dart';
+import 'api/messages.dart';
+import 'api/models.dart';
+import 'api/rooms.dart';
 
 import 'dart:async';
 import 'dart:convert';
@@ -24,10 +27,38 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   });
 
   @protected
+  AnyhowException dco_decode_AnyhowException(dynamic raw);
+
+  @protected
+  RustStreamSink<List<RoomMessage>> dco_decode_StreamSink_list_room_message_Sse(
+    dynamic raw,
+  );
+
+  @protected
+  RustStreamSink<List<RoomSummary>> dco_decode_StreamSink_list_room_summary_Sse(
+    dynamic raw,
+  );
+
+  @protected
   String dco_decode_String(dynamic raw);
 
   @protected
+  PlatformInt64 dco_decode_i_64(dynamic raw);
+
+  @protected
   Uint8List dco_decode_list_prim_u_8_strict(dynamic raw);
+
+  @protected
+  List<RoomMessage> dco_decode_list_room_message(dynamic raw);
+
+  @protected
+  List<RoomSummary> dco_decode_list_room_summary(dynamic raw);
+
+  @protected
+  RoomMessage dco_decode_room_message(dynamic raw);
+
+  @protected
+  RoomSummary dco_decode_room_summary(dynamic raw);
 
   @protected
   int dco_decode_u_8(dynamic raw);
@@ -36,10 +67,38 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   void dco_decode_unit(dynamic raw);
 
   @protected
+  AnyhowException sse_decode_AnyhowException(SseDeserializer deserializer);
+
+  @protected
+  RustStreamSink<List<RoomMessage>> sse_decode_StreamSink_list_room_message_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
+  RustStreamSink<List<RoomSummary>> sse_decode_StreamSink_list_room_summary_Sse(
+    SseDeserializer deserializer,
+  );
+
+  @protected
   String sse_decode_String(SseDeserializer deserializer);
 
   @protected
+  PlatformInt64 sse_decode_i_64(SseDeserializer deserializer);
+
+  @protected
   Uint8List sse_decode_list_prim_u_8_strict(SseDeserializer deserializer);
+
+  @protected
+  List<RoomMessage> sse_decode_list_room_message(SseDeserializer deserializer);
+
+  @protected
+  List<RoomSummary> sse_decode_list_room_summary(SseDeserializer deserializer);
+
+  @protected
+  RoomMessage sse_decode_room_message(SseDeserializer deserializer);
+
+  @protected
+  RoomSummary sse_decode_room_summary(SseDeserializer deserializer);
 
   @protected
   int sse_decode_u_8(SseDeserializer deserializer);
@@ -54,13 +113,52 @@ abstract class RustLibApiImplPlatform extends BaseApiImpl<RustLibWire> {
   bool sse_decode_bool(SseDeserializer deserializer);
 
   @protected
+  void sse_encode_AnyhowException(
+    AnyhowException self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_list_room_message_Sse(
+    RustStreamSink<List<RoomMessage>> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_StreamSink_list_room_summary_Sse(
+    RustStreamSink<List<RoomSummary>> self,
+    SseSerializer serializer,
+  );
+
+  @protected
   void sse_encode_String(String self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_i_64(PlatformInt64 self, SseSerializer serializer);
 
   @protected
   void sse_encode_list_prim_u_8_strict(
     Uint8List self,
     SseSerializer serializer,
   );
+
+  @protected
+  void sse_encode_list_room_message(
+    List<RoomMessage> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_list_room_summary(
+    List<RoomSummary> self,
+    SseSerializer serializer,
+  );
+
+  @protected
+  void sse_encode_room_message(RoomMessage self, SseSerializer serializer);
+
+  @protected
+  void sse_encode_room_summary(RoomSummary self, SseSerializer serializer);
 
   @protected
   void sse_encode_u_8(int self, SseSerializer serializer);
