@@ -67,7 +67,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
   String get codegenVersion => '2.13.0';
 
   @override
-  int get rustContentHash => -440651402;
+  int get rustContentHash => -1006333473;
 
   static const kDefaultExternalLibraryLoaderConfig =
       ExternalLibraryLoaderConfig(
@@ -79,7 +79,7 @@ class RustLib extends BaseEntrypoint<RustLibApi, RustLibApiImpl, RustLibWire> {
 }
 
 abstract class RustLibApi extends BaseApi {
-  Future<String> crateApiAuthLoginUser({
+  Future<String> crateApiAuthLogin({
     required String homeserverUrl,
     required String username,
     required String password,
@@ -97,7 +97,7 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
   });
 
   @override
-  Future<String> crateApiAuthLoginUser({
+  Future<String> crateApiAuthLogin({
     required String homeserverUrl,
     required String username,
     required String password,
@@ -120,15 +120,15 @@ class RustLibApiImpl extends RustLibApiImplPlatform implements RustLibApi {
           decodeSuccessData: sse_decode_String,
           decodeErrorData: sse_decode_String,
         ),
-        constMeta: kCrateApiAuthLoginUserConstMeta,
+        constMeta: kCrateApiAuthLoginConstMeta,
         argValues: [homeserverUrl, username, password],
         apiImpl: this,
       ),
     );
   }
 
-  TaskConstMeta get kCrateApiAuthLoginUserConstMeta => const TaskConstMeta(
-    debugName: "login_user",
+  TaskConstMeta get kCrateApiAuthLoginConstMeta => const TaskConstMeta(
+    debugName: "login",
     argNames: ["homeserverUrl", "username", "password"],
   );
 
