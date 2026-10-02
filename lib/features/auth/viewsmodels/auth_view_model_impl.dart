@@ -15,11 +15,11 @@ class AuthViewModelImpl extends Notifier<AuthState> implements AuthViewModel {
   }
 
   @override
-  Future<void> login(String hostname, String email, String password) async {
+  Future<void> login(String hostname, String username, String password) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      await _repository.login(hostname, email, password);
+      await _repository.login(hostname, username, password);
       state = state.copyWith(isLoading: false, isAuthenticated: true);
     } catch (e) {
       state = state.copyWith(isLoading: false, errorMessage: e.toString());
