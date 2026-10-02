@@ -1,13 +1,6 @@
+use crate::matrix::client::{get_client, set_client, stop_sync};
 use matrix_sdk::Client;
-use std::sync::OnceLock;
-use tokio::sync::Mutex;
 use url::Url;
-
-static MATRIX_CLIENT: OnceLock<Mutex<Option<Client>>> = OnceLock::new();
-
-fn get_client_container() -> &'static Mutex<Option<Client>> {
-    MATRIX_CLIENT.get_or_init(|| Mutex::new(None))
-}
 
 #[flutter_rust_bridge::frb]
 pub async fn login(
@@ -48,8 +41,8 @@ pub async fn login(
         })?
         .to_string();
 
-    let mut client_lock = get_client_container().lock().await;
-    *client_lock = Some(client);
+    set_client(client.clone()).await;
+    crate::matrix::client::start_sync(client).await;
     eprintln!("[matrix-auth] authenticated session stored");
 
     Ok(user_id)
@@ -58,13 +51,14 @@ pub async fn login(
 #[flutter_rust_bridge::frb]
 pub async fn logout() -> Result<(), String> {
     eprintln!("[matrix-auth] logout requested");
-    let mut client_lock = get_client_container().lock().await;
+    stop_sync().await;
 
-    if let Some(client) = client_lock.take() {
+    if let Ok(client) = get_client().await {
         client.matrix_auth().logout().await.map_err(|error| {
             eprintln!("[matrix-auth] logout request failed: {error}");
             error.to_string()
         })?;
+        set_client(None::<Client>).await;
         eprintln!("[matrix-auth] logout succeeded");
     } else {
         eprintln!("[matrix-auth] no active session to log out");
