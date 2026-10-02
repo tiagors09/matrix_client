@@ -8,8 +8,17 @@ class AuthView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final vm = ref.watch(authViewModelProvider);
+    final state = ref.watch(authViewModelProvider);
 
-    return Scaffold(body: AuthForm(onLogin: vm.login));
+    final notifier = ref.read(authViewModelProvider.notifier);
+
+    return Scaffold(
+      body: AuthForm(
+        onLogin: notifier.login,
+        isLoading: state.isLoading,
+        isAuthenticated: state.isAuthenticated,
+        errorMessage: state.errorMessage,
+      ),
+    );
   }
 }
