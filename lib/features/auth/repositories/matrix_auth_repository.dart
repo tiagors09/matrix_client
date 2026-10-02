@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:matrix_client/features/auth/exceptions/matrix_auth_exception.dart';
 import 'package:matrix_client/features/auth/repositories/auth_repository.dart';
 import 'package:matrix_client/features/auth/services/auth_service.dart';
 import 'package:matrix_client/features/auth/services/matrix_auth_service.dart';
