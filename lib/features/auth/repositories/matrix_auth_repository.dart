@@ -17,8 +17,15 @@ class MatrixAuthRepository implements AuthRepository {
 
   @override
   Future<void> login(String hostname, String username, String password) async {
+    log('Iniciando login pelo serviço Matrix', name: runtimeType.toString());
+
     try {
-      await _service.login(hostname, username, password);
+      final response = await _service.login(hostname, username, password);
+      final hasResponse = response != null && response.toString().isNotEmpty;
+      log(
+        'Login retornou resposta: $hasResponse',
+        name: runtimeType.toString(),
+      );
     } catch (e, stackTrace) {
       log(
         'Erro ao realizar login',
