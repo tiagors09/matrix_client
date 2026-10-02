@@ -9,8 +9,12 @@ class MatrixClientApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ProviderScope(
       child: MaterialApp(
+        initialRoute: '/login',
         debugShowCheckedModeBanner: false,
-        home: const Scaffold(body: AuthView()),
+        routes: {
+          '/login': (context) => AuthView(),
+          '/home': (context) => Placeholder(),
+        },
       ),
     );
   }
