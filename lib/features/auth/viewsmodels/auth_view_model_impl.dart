@@ -5,9 +5,7 @@ import 'package:matrix_client/features/auth/repositories/matrix_auth_repository.
 import 'package:matrix_client/features/auth/viewsmodels/auth_view_model.dart';
 
 class AuthViewModelImpl extends Notifier<AuthState> implements AuthViewModel {
-  final AuthRepository _repository;
-
-  new(this._repository);
+  AuthRepository get _repository => ref.read(authRepositoryProvider);
 
   @override
   AuthState build() {
@@ -39,7 +37,6 @@ class AuthViewModelImpl extends Notifier<AuthState> implements AuthViewModel {
   }
 }
 
-final authViewModelProvider = Provider<AuthViewModel>((ref) {
-  final repository = ref.watch(authRepositoryProvider);
-  return AuthViewModelImpl(repository);
-});
+final authViewModelProvider = NotifierProvider<AuthViewModelImpl, AuthState>(
+  AuthViewModelImpl.new,
+);
