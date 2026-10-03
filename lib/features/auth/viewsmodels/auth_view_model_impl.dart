@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:matrix_client/core/models/result.dart';
 import 'package:matrix_client/features/auth/exceptions/matrix_auth_exception.dart';
 import 'package:matrix_client/features/auth/models/auth_state.dart';
 import 'package:matrix_client/features/auth/repositories/auth_repository.dart';
@@ -18,18 +19,18 @@ class AuthViewModelImpl extends Notifier<AuthState> implements AuthViewModel {
     state = state.copyWith(isLoading: true, errorMessage: null);
 
     try {
-      final response = await _repository.login(hostname, username, password);
-
-      if (response.isNotEmpty) {
-        state = state.copyWith(isLoading: false, isAuthenticated: true);
-      } else {
-        state = state.copyWith(
-          isLoading: false,
-          errorMessage: 'Não foi possível entrar. Tente novamente.',
-        );
+      final result = await _repository.login(hostname, username, password);
+      switch (result) {
+        case Ok():
+          state = state.copyWith(isLoading: false, isAuthenticated: true);
+        case Error(error: final error):
+          state = state.copyWith(
+            isLoading: false,
+            errorMessage: error is MatrixAuthException
+                ? error.message
+                : 'Não foi possível entrar. Tente novamente.',
+          );
       }
-    } on MatrixAuthException catch (error) {
-      state = state.copyWith(isLoading: false, errorMessage: error.message);
     } catch (e) {
       state = state.copyWith(
         isLoading: false,
