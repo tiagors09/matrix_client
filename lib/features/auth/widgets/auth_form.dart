@@ -2,17 +2,26 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 
+/// Collects homeserver credentials and forwards submission to the view model.
 class AuthForm extends StatefulWidget {
+  /// Invoked with the form's homeserver, username, and password.
   final Future<void> Function(
     String homeserverUrl,
     String username,
     String password,
   )?
   onLogin;
+
+  /// Whether a login request is in progress.
   final bool isLoading;
+
+  /// Whether the user has successfully authenticated.
   final bool isAuthenticated;
+
+  /// Optional message to display when authentication fails.
   final String? errorMessage;
 
+  /// Creates a credential form that forwards submissions to [onLogin].
   const AuthForm({
     super.key,
     this.onLogin,
@@ -21,6 +30,7 @@ class AuthForm extends StatefulWidget {
     this.errorMessage,
   });
 
+  /// Creates the mutable state that stores form field values.
   @override
   State<AuthForm> createState() => _AuthFormState();
 }
@@ -132,7 +142,7 @@ class _AuthFormState extends State<AuthForm> {
                       ),
                     SizedBox(
                       width: double.infinity,
-                      child: ElevatedButton(
+                      child: FilledButton(
                         onPressed: widget.isLoading ? null : _submit,
                         child: widget.isLoading
                             ? const SizedBox(
