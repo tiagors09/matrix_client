@@ -1,59 +1,30 @@
 import 'dart:async';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:matrix_client/features/rooms/exceptions/matrix_service_exception.dart';
+import 'package:matrix_client/features/rooms/models/room_message.dart';
+import 'package:matrix_client/features/rooms/models/room_summary.dart';
+import 'package:matrix_client/features/rooms/services/room_service.dart';
 import 'package:matrix_client/src/rust/api/messages.dart' as rust_messages;
-import 'package:matrix_client/src/rust/api/models.dart';
+import 'package:matrix_client/src/rust/api/models.dart' as rust_models;
 import 'package:matrix_client/src/rust/api/rooms.dart' as rust_rooms;
 
-class MatrixServiceException implements Exception {
-  final int? statusCode;
-  final String message;
-
-  const MatrixServiceException({this.statusCode, required this.message});
-
-  factory MatrixServiceException.from(Object error) {
-    if (error is MatrixServiceException) return error;
-    final message = error.toString();
-    final explicitStatus = RegExp(r'\b([45]\d{2})\b')
-        .firstMatch(message)
-        ?.group(1);
-    final matrixErrcode = RegExp(r'\bM_[A-Z0-9_]+\b')
-        .firstMatch(message)
-        ?.group(0);
-    final matrixStatus = switch (matrixErrcode) {
-      'M_UNAUTHORIZED' => 401,
-      'M_FORBIDDEN' => 403,
-      'M_NOT_FOUND' => 404,
-      'M_INVALID_PARAM' => 400,
-      'M_LIMIT_EXCEEDED' => 429,
-      _ => null,
-    };
-    return MatrixServiceException(
-      statusCode: explicitStatus == null
-          ? matrixStatus
-          : int.parse(explicitStatus),
-      message: message,
-    );
-  }
-
-  @override
-  String toString() => statusCode == null
-      ? message
-      : 'Matrix request failed ($statusCode): $message';
-}
-
-class MatrixRoomService {
-  final Future<List<RoomSummary>> Function() _loadRooms;
-  final Stream<List<RoomSummary>> Function() _watchRooms;
-  final Future<List<RoomMessage>> Function(String roomId) _loadMessages;
-  final Stream<List<RoomMessage>> Function(String roomId) _watchMessages;
+/// Implements [RoomService] using the generated Matrix Rust API.
+class MatrixRoomService implements RoomService {
+  final Future<List<rust_models.RoomSummary>> Function() _loadRooms;
+  final Stream<List<rust_models.RoomSummary>> Function() _watchRooms;
+  final Future<List<rust_models.RoomMessage>> Function(String roomId)
+  _loadMessages;
+  final Stream<List<rust_models.RoomMessage>> Function(String roomId)
+  _watchMessages;
   final Future<void> Function(String roomId, String body) _sendMessage;
 
+  /// Creates the service with optional operation overrides for testing.
   MatrixRoomService({
-    Future<List<RoomSummary>> Function()? loadRooms,
-    Stream<List<RoomSummary>> Function()? watchRooms,
-    Future<List<RoomMessage>> Function(String roomId)? loadMessages,
-    Stream<List<RoomMessage>> Function(String roomId)? watchMessages,
+    Future<List<rust_models.RoomSummary>> Function()? loadRooms,
+    Stream<List<rust_models.RoomSummary>> Function()? watchRooms,
+    Future<List<rust_models.RoomMessage>> Function(String roomId)? loadMessages,
+    Stream<List<rust_models.RoomMessage>> Function(String roomId)? watchMessages,
     Future<void> Function(String roomId, String body)? sendMessage,
   }) : _loadRooms = loadRooms ?? rust_rooms.joinedRooms,
        _watchRooms = watchRooms ?? rust_rooms.watchJoinedRooms,
@@ -68,45 +39,72 @@ class MatrixRoomService {
            ((roomId, body) =>
                rust_messages.sendMessage(roomId: roomId, body: body));
 
-  Future<List<RoomSummary>> joinedRooms() => _guard(_loadRooms);
+  /// Loads rooms and maps Rust models to application models.
+  @override
+  Future<List<RoomSummary>> joinedRooms() async =>
+      (await _guard(_loadRooms)).map(_mapRoomSummary).toList();
 
-  Stream<List<RoomSummary>> watchJoinedRooms() => _guardStream(_watchRooms());
+  /// Streams rooms and maps each Rust update to application models.
+  @override
+  Stream<List<RoomSummary>> watchJoinedRooms() =>
+      _guardStream(_watchRooms()).map(
+        (rooms) => rooms.map(_mapRoomSummary).toList(),
+      );
 
+  /// Loads messages for [roomId] and maps them to application models.
+  @override
   Future<List<RoomMessage>> roomMessages(String roomId) =>
-      _guard(() => _loadMessages(roomId));
+      _guard(() => _loadMessages(roomId)).then(
+        (messages) => messages.map(_mapRoomMessage).toList(),
+      );
 
+  /// Streams message updates for [roomId] as application models.
+  @override
   Stream<List<RoomMessage>> watchRoomMessages(String roomId) =>
-      _guardStream(_watchMessages(roomId));
+      _guardStream(_watchMessages(roomId)).map(
+        (messages) => messages.map(_mapRoomMessage).toList(),
+      );
 
+  /// Sends [body] to [roomId].
+  @override
   Future<void> sendMessage(String roomId, String body) =>
       _guard(() => _sendMessage(roomId, body));
+
+  RoomSummary _mapRoomSummary(rust_models.RoomSummary room) =>
+      RoomSummary(roomId: room.roomId, name: room.name);
+
+  RoomMessage _mapRoomMessage(rust_models.RoomMessage message) => RoomMessage(
+    eventId: message.eventId,
+    sender: message.sender,
+    body: message.body,
+    timestamp: message.timestamp,
+  );
 
   Future<T> _guard<T>(Future<T> Function() action) async {
     try {
       return await action();
-    } on Object catch (error) {
-      throw MatrixServiceException.from(error);
+    } on String catch (errorJson) {
+      throw MatrixServiceException.fromJson(errorJson);
     }
   }
 
   Stream<T> _guardStream<T>(Stream<T> stream) => stream.transform(
     StreamTransformer<T, T>.fromHandlers(
       handleError: (error, stackTrace, sink) {
-        sink.addError(MatrixServiceException.from(error), stackTrace);
+        if (error is String) {
+          sink.addError(
+            MatrixServiceException.fromJson(error),
+            stackTrace,
+          );
+        } else {
+          sink.addError(error, stackTrace);
+        }
       },
     ),
   );
 }
 
-final matrixRoomServiceProvider = Provider<MatrixRoomService>(
+/// Provides the Matrix-backed room service.
+final matrixRoomServiceProvider = Provider<RoomService>(
   (ref) => MatrixRoomService(),
 );
-
-final joinedRoomsStreamProvider = StreamProvider<List<RoomSummary>>(
-  (ref) => ref.watch(matrixRoomServiceProvider).watchJoinedRooms(),
-);
-
-final roomMessagesStreamProvider =
-    StreamProvider.family<List<RoomMessage>, String>((ref, roomId) {
-      return ref.watch(matrixRoomServiceProvider).watchRoomMessages(roomId);
-    });
