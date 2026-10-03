@@ -1,8 +1,7 @@
 import 'package:matrix_client/core/models/result.dart';
-import 'package:matrix_client/features/auth/models/auth_login_response.dart';
 
 abstract interface class AuthService {
-  Future<Result<AuthLoginResponse>> login(
+  Future<Result<String>> login(
     String hostname,
     String username,
     String password,
