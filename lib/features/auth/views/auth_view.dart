@@ -9,6 +9,14 @@ class AuthView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.listen(authViewModelProvider, (previous, next) {
+      if (next.isAuthenticated &&
+          previous?.isAuthenticated != true &&
+          context.mounted) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
+    });
+
     final state = ref.watch(authViewModelProvider);
 
     final notifier = ref.read(authViewModelProvider.notifier);
@@ -17,7 +25,6 @@ class AuthView extends ConsumerWidget {
       body: AuthForm(
         onLogin: notifier.login,
         isLoading: state.isLoading,
-        isAuthenticated: state.isAuthenticated,
         errorMessage: state.errorMessage,
       ),
     );

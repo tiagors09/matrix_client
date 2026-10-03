@@ -1,6 +1,8 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
+import 'package:matrix_client/features/auth/widgets/homeserver_field.dart';
+import 'package:matrix_client/features/auth/widgets/password_field.dart';
+import 'package:matrix_client/features/auth/widgets/username_field.dart';
+import 'package:matrix_client/features/auth/widgets/validation/auth_field_validation.dart';
 
 /// Collects homeserver credentials and forwards submission to the view model.
 class AuthForm extends StatefulWidget {
@@ -9,14 +11,10 @@ class AuthForm extends StatefulWidget {
     String homeserverUrl,
     String username,
     String password,
-  )?
-  onLogin;
+  ) onLogin;
 
   /// Whether a login request is in progress.
   final bool isLoading;
-
-  /// Whether the user has successfully authenticated.
-  final bool isAuthenticated;
 
   /// Optional message to display when authentication fails.
   final String? errorMessage;
@@ -24,9 +22,8 @@ class AuthForm extends StatefulWidget {
   /// Creates a credential form that forwards submissions to [onLogin].
   const AuthForm({
     super.key,
-    this.onLogin,
+    required this.onLogin,
     required this.isLoading,
-    required this.isAuthenticated,
     this.errorMessage,
   });
 
@@ -35,7 +32,7 @@ class AuthForm extends StatefulWidget {
   State<AuthForm> createState() => _AuthFormState();
 }
 
-class _AuthFormState extends State<AuthForm> {
+class _AuthFormState extends State<AuthForm> with AuthFieldValidation {
   final _form = GlobalKey<FormState>();
 
   String _homeserverUrl = 'matrix.org';
@@ -44,17 +41,11 @@ class _AuthFormState extends State<AuthForm> {
 
   Future<void> _submit() async {
     final isValid = _form.currentState?.validate() ?? false;
-    if (!isValid || widget.onLogin == null) return;
+    if (!isValid) return;
 
     _form.currentState?.save();
 
-    try {
-      await widget.onLogin!(_homeserverUrl.trim(), _username.trim(), _password);
-
-      if (widget.isAuthenticated) {
-        Navigator.of(context).pushReplacementNamed('/home');
-      }
-    } finally {}
+    await widget.onLogin(_homeserverUrl.trim(), _username.trim(), _password);
   }
 
   @override
@@ -92,47 +83,17 @@ class _AuthFormState extends State<AuthForm> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         mainAxisSize: MainAxisSize.max,
                         children: [
-                          TextFormField(
+                          HomeserverField(
                             initialValue: _homeserverUrl,
-                            decoration: const InputDecoration(
-                              prefixText: 'https://',
-                              labelText: 'Homeserver URL',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter a homeserver URL';
-                              }
-                              log(value);
-                              return null;
-                            },
+                            validator: validateHomeserver,
                             onSaved: (value) => _homeserverUrl = value ?? '',
                           ),
-                          TextFormField(
-                            decoration: const InputDecoration(
-                              labelText: 'Username',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.trim().isEmpty) {
-                                return 'Please enter a username';
-                              }
-                              return null;
-                            },
+                          UsernameField(
+                            validator: validateUsername,
                             onSaved: (value) => _username = value ?? '',
                           ),
-                          TextFormField(
-                            obscureText: true,
-                            decoration: const InputDecoration(
-                              labelText: 'Password',
-                              border: OutlineInputBorder(),
-                            ),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Please enter a password';
-                              }
-                              return null;
-                            },
+                          PasswordField(
+                            validator: validatePassword,
                             onSaved: (value) => _password = value ?? '',
                           ),
                         ],
