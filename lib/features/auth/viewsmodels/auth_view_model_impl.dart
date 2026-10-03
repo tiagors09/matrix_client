@@ -6,6 +6,7 @@ import 'package:matrix_client/features/auth/repositories/auth_repository.dart';
 import 'package:matrix_client/features/auth/repositories/matrix_auth_repository.dart';
 import 'package:matrix_client/features/auth/viewsmodels/auth_view_model.dart';
 
+/// Riverpod notifier that coordinates authentication commands and UI state.
 class AuthViewModelImpl extends Notifier<AuthState> implements AuthViewModel {
   AuthRepository get _repository => ref.read(authRepositoryProvider);
 
@@ -21,8 +22,12 @@ class AuthViewModelImpl extends Notifier<AuthState> implements AuthViewModel {
     try {
       final result = await _repository.login(hostname, username, password);
       switch (result) {
-        case Ok():
-          state = state.copyWith(isLoading: false, isAuthenticated: true);
+        case Ok(value: final userId):
+          state = state.copyWith(
+            isLoading: false,
+            isAuthenticated: true,
+            userId: userId,
+          );
         case Error(error: final error):
           state = state.copyWith(
             isLoading: false,
@@ -52,6 +57,7 @@ class AuthViewModelImpl extends Notifier<AuthState> implements AuthViewModel {
   }
 }
 
+/// Provides authentication UI state and commands.
 final authViewModelProvider = NotifierProvider<AuthViewModelImpl, AuthState>(
   AuthViewModelImpl.new,
 );
