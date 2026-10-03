@@ -30,10 +30,19 @@ class MatrixAuthService implements AuthService {
     String username,
     String password,
   ) async {
+    final homeserverUri = _parseHomeserverUri(hostname);
+    if (homeserverUri == null) {
+      return Result.error(
+        const MatrixAuthException(
+          errorCode: 'INVALID_HOMESERVER_URL',
+          message: 'Informe uma URL válida para o homeserver.',
+        ),
+      );
+    }
+
     try {
-      final homeserverUrl = Uri.https(hostname);
       final response = await onLogin(
-        homeserverUrl: homeserverUrl.toString(),
+        homeserverUrl: homeserverUri.toString(),
         username: username,
         password: password,
       );
@@ -69,6 +78,22 @@ class MatrixAuthService implements AuthService {
     } on String catch (errorJson) {
       return Result.error(MatrixAuthException.fromJson(errorJson));
     }
+  }
+
+  Uri? _parseHomeserverUri(String value) {
+    final input = value.trim();
+    if (input.isEmpty) return null;
+
+    final uri = Uri.tryParse(input.contains('://') ? input : 'https://$input');
+    if (uri == null ||
+        !uri.hasAuthority ||
+        uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        (uri.scheme != 'http' && uri.scheme != 'https')) {
+      return null;
+    }
+
+    return uri;
   }
 
   /// Ends the Rust Matrix session and converts structured FRB errors.

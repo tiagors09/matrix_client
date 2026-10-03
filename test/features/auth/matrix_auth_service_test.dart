@@ -8,9 +8,11 @@ import 'package:matrix_client/features/auth/services/matrix_auth_service.dart';
 void main() {
   group('MatrixAuthService', () {
     test('decodes the successful JSON response', () async {
+      String? requestedHomeserverUrl;
       final service = MatrixAuthService(
         onLogin:
             ({required homeserverUrl, required username, required password}) {
+              requestedHomeserverUrl = homeserverUrl;
               return Future.value(
                 jsonEncode({
                   'status_code': 200,
@@ -27,6 +29,7 @@ void main() {
         'secret',
       );
 
+      expect(requestedHomeserverUrl, 'https://matrix.org');
       expect(
         result,
         isA<Ok<String>>().having(
@@ -36,6 +39,68 @@ void main() {
         ),
       );
     });
+
+    test('adds HTTPS when the homeserver is provided as a hostname', () async {
+      String? requestedHomeserverUrl;
+      final service = MatrixAuthService(
+        onLogin:
+            ({required homeserverUrl, required username, required password}) {
+              requestedHomeserverUrl = homeserverUrl;
+              return Future.value(
+                jsonEncode({
+                  'status_code': 200,
+                  'user_id': '@alice:matrix.org',
+                }),
+              );
+            },
+        onLogout: () async {},
+      );
+
+      await service.login('matrix.org', 'alice', 'secret');
+
+      expect(requestedHomeserverUrl, 'https://matrix.org');
+    });
+
+    test(
+      'rejects homeserver URLs without a valid HTTP scheme and host',
+      () async {
+        var loginCalled = false;
+        final service = MatrixAuthService(
+          onLogin:
+              ({required homeserverUrl, required username, required password}) {
+                loginCalled = true;
+                return Future.value('{}');
+              },
+          onLogout: () async {},
+        );
+
+        final result = await service.login(
+          'ftp://matrix.org',
+          'alice',
+          'secret',
+        );
+
+        expect(loginCalled, isFalse);
+        expect(
+          result,
+          isA<Error<String>>().having(
+            (failure) => failure.error,
+            'error',
+            isA<MatrixAuthException>()
+                .having(
+                  (error) => error.errorCode,
+                  'errorCode',
+                  'INVALID_HOMESERVER_URL',
+                )
+                .having(
+                  (error) => error.message,
+                  'message',
+                  'Informe uma URL válida para o homeserver.',
+                ),
+          ),
+        );
+      },
+    );
 
     test('maps invalid credentials to a safe 403 message', () async {
       final service = MatrixAuthService(
