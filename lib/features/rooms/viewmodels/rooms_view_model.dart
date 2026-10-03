@@ -1,25 +1,11 @@
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:matrix_client/features/rooms/services/matrix_room_service.dart';
+/// UI commands and selection state for the rooms and conversation view.
+abstract interface class RoomsViewModel {
+  /// ID of the currently selected room, or `null` when none is selected.
+  String? get selectedRoomId;
 
-class RoomsViewModel extends Notifier<String?> {
-  MatrixRoomService get _service => ref.read(matrixRoomServiceProvider);
+  /// Selects a room to display its conversation.
+  void selectRoom(String roomId);
 
-  @override
-  String? build() => null;
-
-  void selectRoom(String roomId) {
-    state = roomId;
-  }
-
-  Future<void> sendMessage(String body) async {
-    final roomId = state;
-    if (roomId == null) {
-      throw StateError('Selecione uma sala antes de enviar uma mensagem.');
-    }
-    await _service.sendMessage(roomId, body);
-  }
+  /// Sends a message to the selected room.
+  Future<void> sendMessage(String body);
 }
-
-final roomsViewModelProvider = NotifierProvider<RoomsViewModel, String?>(
-  RoomsViewModel.new,
-);
