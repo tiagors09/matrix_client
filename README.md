@@ -75,7 +75,7 @@ running the app, Cargokit builds the native library for the selected target.
 
 ## Flutter Rust Bridge
 
-The bridge configuration is in [`flutter_rust_bridge.yaml`](flutter_rust_bridge.yaml).
+The bridge configuration is in `flutter_rust_bridge.yaml`.
 Rust API source files are under `rust/src/api/`; generated Dart bindings are
 under `lib/src/rust/` and should not be edited by hand.
 
