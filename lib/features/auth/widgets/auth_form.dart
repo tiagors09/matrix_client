@@ -52,11 +52,32 @@ class _AuthFormState extends State<AuthForm> with AuthFieldValidation {
     widget.onTogglePasswordVisibility();
   }
 
+  void _handleHomeserverChanged(String value) {
+    setState(() => _homeserverUrl = value);
+  }
+
+  String get _matrixServerName {
+    final input = _homeserverUrl.trim();
+    if (input.isEmpty) return '';
+
+    final uri = Uri.tryParse(input.contains('://') ? input : 'https://$input');
+    if (uri == null ||
+        !uri.hasAuthority ||
+        uri.host.isEmpty ||
+        uri.userInfo.isNotEmpty ||
+        (uri.scheme != 'http' && uri.scheme != 'https')) {
+      return '';
+    }
+
+    return uri.authority;
+  }
+
   Future<void> _submit() async {
     final isValid = _form.currentState?.validate() ?? false;
     if (!isValid) return;
 
     _form.currentState?.save();
+    _handleTogglePasswordVisibility();
 
     await widget.onLogin(_homeserverUrl.trim(), _username.trim(), _password);
   }
@@ -101,9 +122,11 @@ class _AuthFormState extends State<AuthForm> with AuthFieldValidation {
                             enabled: !widget.isLoading,
                             validator: validateHomeserver,
                             onSaved: (value) => _homeserverUrl = value ?? '',
+                            onChanged: _handleHomeserverChanged,
                           ),
                           UsernameField(
                             enabled: !widget.isLoading,
+                            serverName: _matrixServerName,
                             validator: validateUsername,
                             onSaved: (value) => _username = value ?? '',
                           ),

@@ -5,6 +5,9 @@ class UsernameField extends StatelessWidget {
   /// Whether the field accepts input.
   final bool enabled;
 
+  /// Matrix server name shown after the editable localpart.
+  final String serverName;
+
   /// Validation callback for the field.
   final FormFieldValidator<String>? validator;
 
@@ -15,6 +18,7 @@ class UsernameField extends StatelessWidget {
   const UsernameField({
     super.key,
     this.enabled = true,
+    this.serverName = '',
     this.validator,
     this.onSaved,
   });
@@ -23,7 +27,9 @@ class UsernameField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       enabled: enabled,
-      decoration: const InputDecoration(
+      decoration: InputDecoration(
+        prefixText: '@',
+        suffixText: serverName.isEmpty ? null : ':$serverName',
         labelText: 'Username',
         border: OutlineInputBorder(),
       ),

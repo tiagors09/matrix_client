@@ -14,6 +14,9 @@ class HomeserverField extends StatelessWidget {
   /// Callback used to save the field value.
   final FormFieldSetter<String>? onSaved;
 
+  /// Callback invoked when the homeserver value changes.
+  final ValueChanged<String>? onChanged;
+
   /// Creates a homeserver field.
   const HomeserverField({
     super.key,
@@ -21,6 +24,7 @@ class HomeserverField extends StatelessWidget {
     this.enabled = true,
     this.validator,
     this.onSaved,
+    this.onChanged,
   });
 
   @override
@@ -35,6 +39,7 @@ class HomeserverField extends StatelessWidget {
       ),
       validator: validator,
       onSaved: onSaved,
+      onChanged: onChanged,
     );
   }
 }
