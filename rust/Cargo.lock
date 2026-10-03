@@ -2973,6 +2973,8 @@ dependencies = [
  "anyhow",
  "flutter_rust_bridge",
  "matrix-sdk",
+ "serde",
+ "serde_json",
  "tokio",
  "url",
 ]
