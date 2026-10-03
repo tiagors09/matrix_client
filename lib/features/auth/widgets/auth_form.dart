@@ -50,6 +50,10 @@ class _AuthFormState extends State<AuthForm> {
 
     try {
       await widget.onLogin!(_homeserverUrl.trim(), _username.trim(), _password);
+
+      if (widget.isAuthenticated) {
+        Navigator.of(context).pushReplacementNamed('/home');
+      }
     } finally {}
   }
 

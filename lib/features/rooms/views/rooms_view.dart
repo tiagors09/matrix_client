@@ -5,6 +5,7 @@ import 'package:matrix_client/features/rooms/models/room_summary.dart';
 import 'package:matrix_client/features/rooms/viewmodels/rooms_view_model_impl.dart';
 import 'package:matrix_client/features/rooms/widgets/message_composer.dart';
 import 'package:matrix_client/features/rooms/widgets/message_list.dart';
+import 'package:matrix_client/features/rooms/widgets/no_room_selected.dart';
 import 'package:matrix_client/features/rooms/widgets/rooms_list.dart';
 
 /// Displays joined rooms and the selected room's live conversation.
@@ -37,9 +38,7 @@ class _RoomsViewState extends ConsumerState<RoomsView> {
         return Scaffold(
           key: _scaffoldKey,
           appBar: AppBar(
-            title: Text(
-              selectedRoomId == null ? 'Matrix Client' : 'Conversas',
-            ),
+            title: Text(selectedRoomId == null ? 'Matrix Client' : 'Conversas'),
           ),
           drawer: showPermanentRoomList
               ? null
@@ -83,7 +82,7 @@ class _RoomsViewState extends ConsumerState<RoomsView> {
                 ),
               Expanded(
                 child: selectedRoomId == null
-                    ? const _NoRoomSelected()
+                    ? const NoRoomSelected()
                     : Column(
                         children: [
                           Expanded(
@@ -92,9 +91,7 @@ class _RoomsViewState extends ConsumerState<RoomsView> {
                               currentUserId: currentUserId,
                             ),
                           ),
-                          MessageComposer(
-                            onSend: roomsViewModel.sendMessage,
-                          ),
+                          MessageComposer(onSend: roomsViewModel.sendMessage),
                         ],
                       ),
               ),
@@ -108,30 +105,5 @@ class _RoomsViewState extends ConsumerState<RoomsView> {
   void _selectRoom(RoomSummary room, void Function(String) selectRoom) {
     selectRoom(room.roomId);
     _scaffoldKey.currentState?.closeDrawer();
-  }
-}
-
-class _NoRoomSelected extends StatelessWidget {
-  const _NoRoomSelected();
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.forum_outlined,
-            size: 56,
-            color: Theme.of(context).colorScheme.outline,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            'Selecione uma sala para ver as conversas.',
-            style: Theme.of(context).textTheme.titleMedium,
-          ),
-        ],
-      ),
-    );
   }
 }
