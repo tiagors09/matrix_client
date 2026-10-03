@@ -1,11 +1,20 @@
 import 'dart:convert';
 
+/// Represents a structured authentication failure returned by the Rust API.
 class MatrixAuthException implements Exception {
+  /// HTTP status code, when the homeserver returned one.
   final int? statusCode;
+
+  /// Matrix error code or an application-defined authentication error code.
   final String errorCode;
+
+  /// Safe message suitable for displaying to the user.
   final String message;
+
+  /// Optional diagnostic details returned by the Rust API.
   final String? details;
 
+  /// Creates a typed authentication exception.
   const MatrixAuthException({
     this.statusCode,
     this.errorCode = 'MATRIX_AUTH_ERROR',
@@ -13,6 +22,7 @@ class MatrixAuthException implements Exception {
     this.details,
   });
 
+  /// Decodes an authentication error JSON payload returned over FRB.
   factory MatrixAuthException.fromJson(String json) {
     final decoded = jsonDecode(json);
     if (decoded case {
