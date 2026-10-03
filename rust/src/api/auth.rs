@@ -5,16 +5,24 @@ use url::Url;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+/// Structured authentication failure serialized across the FRB boundary.
 pub struct AuthError {
+    /// HTTP response status code, when available.
     pub status_code: Option<u16>,
+    /// Matrix error code or application-defined authentication code.
     pub error_code: String,
+    /// User-facing description of the authentication failure.
     pub message: String,
+    /// Optional diagnostic details.
     pub details: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
+/// Successful login payload returned to Dart as JSON.
 pub struct AuthLoginResponse {
+    /// HTTP status code for the successful login response.
     pub status_code: u16,
+    /// Fully qualified Matrix user ID for the authenticated account.
     pub user_id: String,
 }
 
@@ -82,6 +90,7 @@ fn matrix_http_auth_error(error: &matrix_sdk::HttpError) -> String {
 }
 
 #[flutter_rust_bridge::frb]
+/// Authenticates a user and returns JSON containing the HTTP status and user ID.
 pub async fn login(
     homeserver_url: String,
     username: String,
@@ -144,6 +153,7 @@ pub async fn login(
 }
 
 #[flutter_rust_bridge::frb]
+/// Ends the active Matrix session and stops background synchronization.
 pub async fn logout() -> Result<(), String> {
     eprintln!("[matrix-auth] logout requested");
     stop_sync().await;
