@@ -7,17 +7,23 @@ import 'package:matrix_client/features/auth/models/auth_login_response.dart';
 import 'package:matrix_client/features/auth/services/auth_service.dart';
 import 'package:matrix_client/src/rust/api/auth.dart';
 
+/// Implements authentication by calling the generated Rust API.
 class MatrixAuthService implements AuthService {
+  /// FRB login function, injectable for tests.
   final Future<String> Function({
     required String homeserverUrl,
     required String username,
     required String password,
   })
   onLogin;
+
+  /// FRB logout function, injectable for tests.
   final Future<void> Function() onLogout;
 
+  /// Creates a Matrix authentication service with optional test overrides.
   MatrixAuthService({required this.onLogin, required this.onLogout});
 
+  /// Decodes and validates the Rust login response before returning a user ID.
   @override
   Future<Result<String>> login(
     String hostname,
@@ -65,6 +71,7 @@ class MatrixAuthService implements AuthService {
     }
   }
 
+  /// Ends the Rust Matrix session and converts structured FRB errors.
   @override
   Future<void> logout() async {
     try {
@@ -75,6 +82,7 @@ class MatrixAuthService implements AuthService {
   }
 }
 
+/// Provides the authentication service to the application.
 final authServiceProvider = Provider<AuthService>((ref) {
   return MatrixAuthService(onLogin: login, onLogout: logout);
 });
