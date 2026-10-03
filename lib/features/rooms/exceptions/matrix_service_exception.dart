@@ -1,32 +1,44 @@
+import 'dart:convert';
+
+/// Represents a structured room or messaging failure returned by Rust.
 class MatrixServiceException implements Exception {
+  /// HTTP status code, when one is available.
   final int? statusCode;
+
+  /// Matrix error code or an application-defined room error code.
+  final String errorCode;
+
+  /// User-facing description of the failed operation.
   final String message;
 
-  const MatrixServiceException({this.statusCode, required this.message});
+  /// Optional diagnostic details from the Rust API.
+  final String? details;
 
-  factory MatrixServiceException.from(Object error) {
-    if (error is MatrixServiceException) return error;
-    final message = error.toString();
-    final explicitStatus = RegExp(r'\b([45]\d{2})\b')
-        .firstMatch(message)
-        ?.group(1);
-    final matrixErrcode = RegExp(r'\bM_[A-Z0-9_]+\b')
-        .firstMatch(message)
-        ?.group(0);
-    final matrixStatus = switch (matrixErrcode) {
-      'M_UNAUTHORIZED' => 401,
-      'M_FORBIDDEN' => 403,
-      'M_NOT_FOUND' => 404,
-      'M_INVALID_PARAM' => 400,
-      'M_LIMIT_EXCEEDED' => 429,
-      _ => null,
-    };
-    return MatrixServiceException(
-      statusCode: explicitStatus == null
-          ? matrixStatus
-          : int.parse(explicitStatus),
-      message: message,
-    );
+  /// Creates a typed room service exception.
+  const MatrixServiceException({
+    this.statusCode,
+    this.errorCode = 'MATRIX_ROOM_ERROR',
+    required this.message,
+    this.details,
+  });
+
+  /// Decodes a room error JSON payload returned over FRB.
+  factory MatrixServiceException.fromJson(String json) {
+    final decoded = jsonDecode(json);
+    if (decoded case {
+      'statusCode': final int? statusCode,
+      'errorCode': final String errorCode,
+      'message': final String message,
+      'details': final String? details,
+    }) {
+      return MatrixServiceException(
+        statusCode: statusCode,
+        errorCode: errorCode,
+        message: message,
+        details: details,
+      );
+    }
+    throw const FormatException('Invalid Matrix room error JSON.');
   }
 
   @override
