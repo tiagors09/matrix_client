@@ -5,6 +5,9 @@ class HomeserverField extends StatelessWidget {
   /// Initial value displayed in the field.
   final String initialValue;
 
+  /// Whether the field accepts input.
+  final bool enabled;
+
   /// Validation callback for the field.
   final FormFieldValidator<String>? validator;
 
@@ -15,6 +18,7 @@ class HomeserverField extends StatelessWidget {
   const HomeserverField({
     super.key,
     this.initialValue = '',
+    this.enabled = true,
     this.validator,
     this.onSaved,
   });
@@ -23,6 +27,7 @@ class HomeserverField extends StatelessWidget {
   Widget build(BuildContext context) {
     return TextFormField(
       initialValue: initialValue,
+      enabled: enabled,
       decoration: const InputDecoration(
         prefixText: 'https://',
         labelText: 'Homeserver URL',

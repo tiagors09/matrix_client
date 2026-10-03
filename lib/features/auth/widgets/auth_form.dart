@@ -98,14 +98,17 @@ class _AuthFormState extends State<AuthForm> with AuthFieldValidation {
                         children: [
                           HomeserverField(
                             initialValue: _homeserverUrl,
+                            enabled: !widget.isLoading,
                             validator: validateHomeserver,
                             onSaved: (value) => _homeserverUrl = value ?? '',
                           ),
                           UsernameField(
+                            enabled: !widget.isLoading,
                             validator: validateUsername,
                             onSaved: (value) => _username = value ?? '',
                           ),
                           PasswordField(
+                            enabled: !widget.isLoading,
                             validator: validatePassword,
                             onSaved: (value) => _password = value ?? '',
                             obscureText: widget.obscureText,
