@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:matrix_client/features/auth/viewsmodels/auth_view_model_impl.dart';
 import 'package:matrix_client/features/auth/widgets/auth_form.dart';
 
+/// Displays the login form and navigates after successful authentication.
 class AuthView extends ConsumerWidget {
   const AuthView({super.key});
 
