@@ -1,7 +1,9 @@
 import 'dart:developer';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:matrix_client/core/models/result.dart';
 import 'package:matrix_client/features/auth/exceptions/matrix_auth_exception.dart';
+import 'package:matrix_client/features/auth/models/auth_login_response.dart';
 import 'package:matrix_client/features/auth/repositories/auth_repository.dart';
 import 'package:matrix_client/features/auth/services/auth_service.dart';
 import 'package:matrix_client/features/auth/services/matrix_auth_service.dart';
@@ -17,7 +19,7 @@ class MatrixAuthRepository implements AuthRepository {
   MatrixAuthRepository(this._service);
 
   @override
-  Future<String> login(
+  Future<Result<AuthLoginResponse>> login(
     String hostname,
     String username,
     String password,
