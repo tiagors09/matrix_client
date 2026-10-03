@@ -11,7 +11,8 @@ class AuthForm extends StatefulWidget {
     String homeserverUrl,
     String username,
     String password,
-  ) onLogin;
+  )
+  onLogin;
 
   /// Whether a login request is in progress.
   final bool isLoading;
@@ -19,12 +20,20 @@ class AuthForm extends StatefulWidget {
   /// Optional message to display when authentication fails.
   final String? errorMessage;
 
+  /// Toggle password visibility
+  final bool obscureText;
+
+  /// Called when the password visibility control is pressed.
+  final VoidCallback onTogglePasswordVisibility;
+
   /// Creates a credential form that forwards submissions to [onLogin].
   const AuthForm({
     super.key,
     required this.onLogin,
     required this.isLoading,
+    required this.onTogglePasswordVisibility,
     this.errorMessage,
+    this.obscureText = true,
   });
 
   /// Creates the mutable state that stores form field values.
@@ -38,6 +47,10 @@ class _AuthFormState extends State<AuthForm> with AuthFieldValidation {
   String _homeserverUrl = 'matrix.org';
   String _username = '';
   String _password = '';
+
+  void _handleTogglePasswordVisibility() {
+    widget.onTogglePasswordVisibility();
+  }
 
   Future<void> _submit() async {
     final isValid = _form.currentState?.validate() ?? false;
@@ -95,6 +108,8 @@ class _AuthFormState extends State<AuthForm> with AuthFieldValidation {
                           PasswordField(
                             validator: validatePassword,
                             onSaved: (value) => _password = value ?? '',
+                            obscureText: widget.obscureText,
+                            onToggleVisibility: _handleTogglePasswordVisibility,
                           ),
                         ],
                       ),

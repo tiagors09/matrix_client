@@ -16,6 +16,11 @@ class AuthViewModelImpl extends Notifier<AuthState> implements AuthViewModel {
   }
 
   @override
+  void togglePasswordVisibility() {
+    state = state.copyWith(obscureText: !state.obscureText);
+  }
+
+  @override
   Future<void> login(String hostname, String username, String password) async {
     state = state.copyWith(isLoading: true, errorMessage: null);
 

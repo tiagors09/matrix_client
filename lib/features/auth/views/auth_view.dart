@@ -26,6 +26,8 @@ class AuthView extends ConsumerWidget {
         onLogin: notifier.login,
         isLoading: state.isLoading,
         errorMessage: state.errorMessage,
+        obscureText: state.obscureText,
+        onTogglePasswordVisibility: notifier.togglePasswordVisibility,
       ),
     );
   }
