@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 
 class AuthForm extends StatefulWidget {
@@ -26,7 +28,7 @@ class AuthForm extends StatefulWidget {
 class _AuthFormState extends State<AuthForm> {
   final _form = GlobalKey<FormState>();
 
-  String _homeserverUrl = 'https://matrix.org';
+  String _homeserverUrl = 'matrix.org';
   String _username = '';
   String _password = '';
 
@@ -79,6 +81,7 @@ class _AuthFormState extends State<AuthForm> {
                           TextFormField(
                             initialValue: _homeserverUrl,
                             decoration: const InputDecoration(
+                              prefixText: 'https://',
                               labelText: 'Homeserver URL',
                               border: OutlineInputBorder(),
                             ),
@@ -86,6 +89,7 @@ class _AuthFormState extends State<AuthForm> {
                               if (value == null || value.trim().isEmpty) {
                                 return 'Please enter a homeserver URL';
                               }
+                              log(value);
                               return null;
                             },
                             onSaved: (value) => _homeserverUrl = value ?? '',
