@@ -14,6 +14,10 @@ void main() {
         loadRooms: () async => const [
           rust_models.RoomSummary(roomId: '!room:matrix.org', name: 'Room'),
         ],
+        watchRooms: () => const Stream.empty(),
+        loadMessages: (_) async => const [],
+        watchMessages: (_) => const Stream.empty(),
+        sendMessage: (_, _) async {},
       );
 
       final rooms = await service.joinedRooms();
@@ -26,7 +30,7 @@ void main() {
 
   group('MatrixRoomService errors', () {
     test('converts a 403 response to a typed exception', () async {
-      final service = MatrixRoomService(
+      final service = _createService(
         loadRooms: () => Future.error(
           jsonEncode({
             'statusCode': 403,
@@ -50,7 +54,7 @@ void main() {
     });
 
     test('preserves structured error details and code', () async {
-      final service = MatrixRoomService(
+      final service = _createService(
         loadRooms: () => Future.error(
           jsonEncode({
             'statusCode': 404,
@@ -73,7 +77,7 @@ void main() {
 
     test('converts stream errors without swallowing them', () async {
       final controller = StreamController<List<rust_models.RoomSummary>>();
-      final service = MatrixRoomService(watchRooms: () => controller.stream);
+      final service = _createService(watchRooms: () => controller.stream);
       final expectation = expectLater(
         service.watchJoinedRooms(),
         emitsError(
@@ -99,9 +103,23 @@ void main() {
 
     test('does not parse non-string errors as Matrix errors', () async {
       final error = StateError('unexpected failure');
-      final service = MatrixRoomService(loadRooms: () => Future.error(error));
+      final service = _createService(loadRooms: () => Future.error(error));
 
       await expectLater(service.joinedRooms(), throwsA(same(error)));
     });
   });
 }
+
+MatrixRoomService _createService({
+  Future<List<rust_models.RoomSummary>> Function()? loadRooms,
+  Stream<List<rust_models.RoomSummary>> Function()? watchRooms,
+  Future<List<rust_models.RoomMessage>> Function(String roomId)? loadMessages,
+  Stream<List<rust_models.RoomMessage>> Function(String roomId)? watchMessages,
+  Future<void> Function(String roomId, String body)? sendMessage,
+}) => MatrixRoomService(
+  loadRooms: loadRooms ?? () async => const [],
+  watchRooms: watchRooms ?? () => const Stream.empty(),
+  loadMessages: loadMessages ?? (_) async => const [],
+  watchMessages: watchMessages ?? (_) => const Stream.empty(),
+  sendMessage: sendMessage ?? (_, _) async {},
+);

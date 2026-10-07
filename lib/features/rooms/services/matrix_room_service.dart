@@ -19,25 +19,14 @@ class MatrixRoomService implements RoomService {
   _watchMessages;
   final Future<void> Function(String roomId, String body) _sendMessage;
 
-  /// Creates the service with optional operation overrides for testing.
-  MatrixRoomService({
-    Future<List<rust_models.RoomSummary>> Function()? loadRooms,
-    Stream<List<rust_models.RoomSummary>> Function()? watchRooms,
-    Future<List<rust_models.RoomMessage>> Function(String roomId)? loadMessages,
-    Stream<List<rust_models.RoomMessage>> Function(String roomId)? watchMessages,
-    Future<void> Function(String roomId, String body)? sendMessage,
-  }) : _loadRooms = loadRooms ?? rust_rooms.joinedRooms,
-       _watchRooms = watchRooms ?? rust_rooms.watchJoinedRooms,
-       _loadMessages =
-           loadMessages ??
-           ((roomId) => rust_messages.getRoomMessages(roomId: roomId)),
-       _watchMessages =
-           watchMessages ??
-           ((roomId) => rust_messages.watchRoomMessages(roomId: roomId)),
-       _sendMessage =
-           sendMessage ??
-           ((roomId, body) =>
-               rust_messages.sendMessage(roomId: roomId, body: body));
+  /// Creates the service with its Matrix operations.
+  const MatrixRoomService({
+    required this._loadRooms,
+    required this._watchRooms,
+    required this._loadMessages,
+    required this._watchMessages,
+    required this._sendMessage,
+  });
 
   /// Loads rooms and maps Rust models to application models.
   @override
@@ -47,23 +36,20 @@ class MatrixRoomService implements RoomService {
   /// Streams rooms and maps each Rust update to application models.
   @override
   Stream<List<RoomSummary>> watchJoinedRooms() =>
-      _guardStream(_watchRooms()).map(
-        (rooms) => rooms.map(_mapRoomSummary).toList(),
-      );
+      _guardStream(_watchRooms())
+          .map((rooms) => rooms.map(_mapRoomSummary).toList());
 
   /// Loads messages for [roomId] and maps them to application models.
   @override
   Future<List<RoomMessage>> roomMessages(String roomId) =>
-      _guard(() => _loadMessages(roomId)).then(
-        (messages) => messages.map(_mapRoomMessage).toList(),
-      );
+      _guard(() => _loadMessages(roomId))
+          .then((messages) => messages.map(_mapRoomMessage).toList());
 
   /// Streams message updates for [roomId] as application models.
   @override
   Stream<List<RoomMessage>> watchRoomMessages(String roomId) =>
-      _guardStream(_watchMessages(roomId)).map(
-        (messages) => messages.map(_mapRoomMessage).toList(),
-      );
+      _guardStream(_watchMessages(roomId))
+          .map((messages) => messages.map(_mapRoomMessage).toList());
 
   /// Sends [body] to [roomId].
   @override
@@ -92,10 +78,7 @@ class MatrixRoomService implements RoomService {
     StreamTransformer<T, T>.fromHandlers(
       handleError: (error, stackTrace, sink) {
         if (error is String) {
-          sink.addError(
-            MatrixServiceException.fromJson(error),
-            stackTrace,
-          );
+          sink.addError(MatrixServiceException.fromJson(error), stackTrace);
         } else {
           sink.addError(error, stackTrace);
         }
@@ -106,5 +89,12 @@ class MatrixRoomService implements RoomService {
 
 /// Provides the Matrix-backed room service.
 final matrixRoomServiceProvider = Provider<RoomService>(
-  (ref) => MatrixRoomService(),
+  (ref) => MatrixRoomService(
+    loadRooms: rust_rooms.joinedRooms,
+    watchRooms: rust_rooms.watchJoinedRooms,
+    loadMessages: (roomId) => rust_messages.getRoomMessages(roomId: roomId),
+    watchMessages: (roomId) => rust_messages.watchRoomMessages(roomId: roomId),
+    sendMessage: (roomId, body) =>
+        rust_messages.sendMessage(roomId: roomId, body: body),
+  ),
 );
